@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # Git-Frog Web App & Express API Server
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - VITE_DEPLOY_MODE=docker
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DATABASE_URL=postgresql://gitfrog:gitfrogpass@postgres:5432/gitfrog_db
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  # PostgreSQL Database Service
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: gitfrog
+      POSTGRES_PASSWORD: gitfrogpass
+      POSTGRES_DB: gitfrog_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Redis Cache & Worker Queue Service
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  pgdata:

@@ -1,0 +1,20 @@
+name = "git-frog-guardian"
+type = "webpack"
+account_id = ""
+workers_dev = true
+route = ""
+zone_id = ""
+compatibility_date = "2024-01-01"
+
+[site]
+bucket = "./dist"
+entry-point = "workers-site"
+
+[vars]
+VITE_DEPLOY_MODE = "cloudflare"
+VITE_APP_NAME = "Git-Frog Edge"
+
+# Cloudflare Pages / Workers Build Config
+[build]
+command = "npm run build"
+output_dir = "dist"

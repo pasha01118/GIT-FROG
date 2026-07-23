@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "name": "git-frog-guardian",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "env": {
+    "VITE_DEPLOY_MODE": "vercel"
+  }
+}

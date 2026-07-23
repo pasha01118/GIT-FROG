@@ -1,0 +1,11 @@
+{
+  "target": "github-pages",
+  "publicPath": "./",
+  "staticDemoMode": true,
+  "disabledFeaturesOnStatic": [
+    "live_gemini_streaming",
+    "real_oauth_callbacks",
+    "live_slack_webhooks"
+  ],
+  "mockFallbackEnabled": true
+}

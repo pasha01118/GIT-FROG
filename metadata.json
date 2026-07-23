@@ -1,0 +1,6 @@
+{
+  "name": "Git-Frog",
+  "description": "Repository Guardian Platform with continuous code intelligence, security scanning, dependency health, 9 specialist agents, and safe automated repair suggestions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

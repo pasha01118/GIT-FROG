@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { SplashScreen } from './components/SplashScreen';
 import { Header } from './components/Header';
 import { RepositoryHealthCard } from './components/RepositoryHealthCard';
@@ -570,6 +571,9 @@ export default function App() {
         isScanning={isScanning}
         onTriggerScan={handleTriggerScan}
       />
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
 
     </div>
   );

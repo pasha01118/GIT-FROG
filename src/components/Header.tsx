@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   ShieldCheck, 
   Bot, 
@@ -11,7 +11,12 @@ import {
   Search,
   Eye,
   BarChart2,
-  Wrench
+  Wrench,
+  HardDrive,
+  Cpu,
+  Download,
+  FileSpreadsheet,
+  FileText
 } from 'lucide-react';
 import { Repository, OperatingMode } from '../types';
 
@@ -27,6 +32,8 @@ interface HeaderProps {
   onOpenPolicyModal: () => void;
   onOpenSettingsModal: () => void;
   onOpenLoginModal: () => void;
+  onOpenDriveModal?: () => void;
+  onOpenAiEngineModal?: () => void;
   onReturnToSplash: () => void;
   user?: { name: string; avatar: string } | null;
 }
@@ -43,9 +50,68 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenPolicyModal,
   onOpenSettingsModal,
   onOpenLoginModal,
+  onOpenDriveModal,
+  onOpenAiEngineModal,
   onReturnToSplash,
   user
 }) => {
+  const [showExportMenu, setShowExportMenu] = useState(false);
+
+  const handleExportCSV = () => {
+    setShowExportMenu(false);
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Metric,Value\n"
+      + `Repository,${selectedRepo.owner}/${selectedRepo.name}\n`
+      + `Branch,${selectedRepo.branch}\n`
+      + `Health Score,${selectedRepo.healthScore}/100\n`
+      + `CI Status,${selectedRepo.ciStatus}\n`
+      + `Open PRs,${selectedRepo.openPRs}\n`
+      + `Active Alerts,${selectedRepo.activeAlerts}\n`
+      + `Dependency Health,${selectedRepo.dependencyHealthScore}%\n`
+      + `Export Timestamp,${new Date().toISOString()}\n`;
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${selectedRepo.name}_compliance_summary.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleExportPDF = () => {
+    setShowExportMenu(false);
+    const reportWindow = window.open('', '_blank');
+    if (reportWindow) {
+      reportWindow.document.write(`
+        <html>
+          <head>
+            <title>Compliance Audit Report - ${selectedRepo.name}</title>
+            <style>
+              body { font-family: monospace; padding: 40px; background: #fff; color: #111; }
+              h1 { color: #0284c7; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+              th, td { border: 1px solid #ccc; padding: 12px; text-align: left; }
+              th { background: #f1f5f9; }
+            </style>
+          </head>
+          <body>
+            <h1>🐸 Git-Frog Guardian Compliance & Health Audit Report</h1>
+            <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+            <table>
+              <tr><th>Repository</th><td>${selectedRepo.owner}/${selectedRepo.name}</td></tr>
+              <tr><th>Branch</th><td>${selectedRepo.branch}</td></tr>
+              <tr><th>Health Index</th><td>${selectedRepo.healthScore}/100</td></tr>
+              <tr><th>CI Pipeline Status</th><td>${selectedRepo.ciStatus.toUpperCase()}</td></tr>
+              <tr><th>Dependency Health</th><td>${selectedRepo.dependencyHealthScore}%</td></tr>
+              <tr><th>Active Security Alerts</th><td>${selectedRepo.activeAlerts}</td></tr>
+            </table>
+            <script>window.print();</script>
+          </body>
+        </html>
+      `);
+      reportWindow.document.close();
+    }
+  };
   return (
     <header className="sticky top-0 z-40 bg-[#08090D]/95 border-b border-slate-800/80 backdrop-blur-md px-4 sm:px-6 py-3 font-mono">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
@@ -202,6 +268,61 @@ export const Header: React.FC<HeaderProps> = ({
             <Bot className="w-4 h-4 text-[#20E3FF]" />
             <span className="hidden lg:inline">Ask AI</span>
           </button>
+
+          {/* Google Drive Storage Vault Button */}
+          {onOpenDriveModal && (
+            <button
+              onClick={onOpenDriveModal}
+              className="p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-mono font-semibold text-cyan-300 bg-[#10131A] hover:bg-[#1A1F2B] border border-cyan-500/30 hover:border-cyan-400 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Google Drive Cloud Vault"
+            >
+              <HardDrive className="w-4 h-4 text-cyan-400" />
+              <span className="hidden xl:inline">Drive</span>
+            </button>
+          )}
+
+          {/* AI Model Engine (Ollama + Cloud AI) Button */}
+          {onOpenAiEngineModal && (
+            <button
+              onClick={onOpenAiEngineModal}
+              className="p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-mono font-semibold text-purple-300 bg-[#10131A] hover:bg-[#1A1F2B] border border-purple-500/30 hover:border-purple-400 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Configure Ollama & AI Models"
+            >
+              <Cpu className="w-4 h-4 text-purple-400 animate-pulse" />
+              <span className="hidden xl:inline">AI Config</span>
+            </button>
+          )}
+
+          {/* Export Report Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowExportMenu(!showExportMenu)}
+              className="p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-mono font-semibold text-emerald-300 bg-[#10131A] hover:bg-[#1A1F2B] border border-emerald-500/30 hover:border-emerald-400 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Export Repository Compliance Summary"
+            >
+              <Download className="w-4 h-4 text-emerald-400" />
+              <span className="hidden sm:inline">Export</span>
+            </button>
+
+            {showExportMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-[#10131A] border border-slate-800 rounded-xl shadow-2xl p-1.5 z-50 text-xs font-mono">
+                <button
+                  onClick={handleExportCSV}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-slate-200 hover:bg-slate-800 rounded-lg text-left cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                  Export as CSV
+                </button>
+                <button
+                  onClick={handleExportPDF}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-slate-200 hover:bg-slate-800 rounded-lg text-left cursor-pointer"
+                >
+                  <FileText className="w-4 h-4 text-cyan-400" />
+                  Print / Export PDF
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* User Login Profile Button */}
           <button

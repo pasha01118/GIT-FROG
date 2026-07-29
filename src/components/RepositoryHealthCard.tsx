@@ -58,9 +58,9 @@ export const RepositoryHealthCard: React.FC<RepositoryHealthCardProps> = ({
           </div>
 
           {/* Repository Meta Details */}
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h2 className="text-xl sm:text-2xl font-bold text-white font-mono tracking-wide">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h2 className="text-lg sm:text-2xl font-bold text-white font-mono tracking-wide break-words max-w-full">
                 {repository.owner}/<span className="text-[#C8FF2E]">{repository.name}</span>
               </h2>
               <span className="px-2 py-0.5 text-[10px] font-mono font-semibold rounded bg-slate-800 text-slate-300 border border-slate-700">
@@ -73,11 +73,11 @@ export const RepositoryHealthCard: React.FC<RepositoryHealthCardProps> = ({
               )}
             </div>
 
-            <p className="text-xs text-slate-400 font-mono flex items-center gap-3">
+            <p className="text-xs text-slate-400 font-mono flex flex-wrap items-center gap-x-3 gap-y-1">
               <span>Language: <strong className="text-slate-200">{repository.language}</strong></span>
-              <span>•</span>
+              <span className="hidden sm:inline">•</span>
               <span>Last Scan: <strong className="text-slate-200">{repository.lastScanTime}</strong></span>
-              <span>•</span>
+              <span className="hidden sm:inline">•</span>
               <span className="flex items-center gap-1 text-[#2BFF88]">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 CI {repository.ciStatus.toUpperCase()}

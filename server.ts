@@ -256,7 +256,82 @@ app.post('/api/generate-digest', async (req, res) => {
   }
 });
 
-// 4. Start Server with Vite Middleware in Dev or Static Serve in Prod
+// 5. Audit Logs API Endpoint (Secure Audit Record Query with Pagination & Filtering)
+app.get('/api/audit-logs', (req, res) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const severity = req.query.severity as string;
+    const agentFilter = req.query.agent as string;
+    const startDate = req.query.startDate as string;
+    const endDate = req.query.endDate as string;
+
+    // Simulated PostgreSQL/Database Audit Store
+    const allAuditLogs = [
+      { id: 'aud-101', timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(), repo: 'acme-corp/payment-gateway-service', actor: 'security-agent', action: 'SECRET_REDACTION', severity: 'critical', details: 'Masked Stripe secret API key in config/keys.env prior to LLM submission.' },
+      { id: 'aud-102', timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(), repo: 'acme-corp/payment-gateway-service', actor: 'refiner-agent', action: 'DRAFT_REPAIR_PR', severity: 'medium', details: 'Auto-generated patch PR #143 with Jest test suite to fix null pointer exception.' },
+      { id: 'aud-103', timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(), repo: 'acme-corp/payment-gateway-service', actor: 'policy-guard', action: 'ENFORCE_2FA_RULE', severity: 'high', details: 'Gated PR merge #142 due to missing secondary approval on production auth file.' },
+      { id: 'aud-104', timestamp: new Date(Date.now() - 1000 * 60 * 300).toISOString(), repo: 'acme-corp/auth-microservice', actor: 'bug-finder-agent', action: 'FLAG_RACE_CONDITION', severity: 'high', details: 'Detected unhandled promise rejection in user token verification handler.' },
+      { id: 'aud-105', timestamp: new Date(Date.now() - 1000 * 60 * 600).toISOString(), repo: 'acme-corp/auth-microservice', actor: 'dependency-agent', action: 'DEP_DRIFT_SCAN', severity: 'low', details: 'Identified 3 patchable sub-dependencies with non-breaking security advisories.' },
+      { id: 'aud-106', timestamp: new Date(Date.now() - 1000 * 60 * 1200).toISOString(), repo: 'acme-corp/payment-gateway-service', actor: 'reporter-agent', action: 'PUBLISH_EXECUTIVE_DIGEST', severity: 'low', details: 'Compiled 24-hour compliance summary and exported compliance report.' },
+      { id: 'aud-107', timestamp: new Date(Date.now() - 1000 * 60 * 1800).toISOString(), repo: 'acme-corp/auth-microservice', actor: 'security-agent', action: 'OWASP_SCAN_COMPLETE', severity: 'medium', details: 'Scanned 14 API endpoints against OWASP Top 10 vulnerabilities.' },
+      { id: 'aud-108', timestamp: new Date(Date.now() - 1000 * 60 * 2400).toISOString(), repo: 'acme-corp/payment-gateway-service', actor: 'admin-user', action: 'MANUAL_SCAN_TRIGGER', severity: 'low', details: 'User pasha01118@gmail.com triggered repository health scan.' },
+      { id: 'aud-109', timestamp: new Date(Date.now() - 1000 * 60 * 3000).toISOString(), repo: 'acme-corp/auth-microservice', actor: 'system-agent', action: 'POLICY_UPDATE', severity: 'medium', details: 'Updated auto-remediation rule for low-risk dependency updates.' },
+      { id: 'aud-110', timestamp: new Date(Date.now() - 1000 * 60 * 3600).toISOString(), repo: 'acme-corp/payment-gateway-service', actor: 'security-agent', action: 'BULK_ALERT_DISMISS', severity: 'low', details: 'Bulk dismissed 2 low-severity vulnerability warnings after manual review.' }
+    ];
+
+    // Filter by severity
+    let filtered = allAuditLogs;
+    if (severity && severity !== 'all') {
+      filtered = filtered.filter(l => l.severity.toLowerCase() === severity.toLowerCase());
+    }
+
+    // Filter by agent
+    if (agentFilter && agentFilter !== 'all') {
+      filtered = filtered.filter(l => l.actor.toLowerCase().includes(agentFilter.toLowerCase()));
+    }
+
+    // Filter by Date Range
+    if (startDate) {
+      const startMs = new Date(startDate).getTime();
+      filtered = filtered.filter(l => new Date(l.timestamp).getTime() >= startMs);
+    }
+    if (endDate) {
+      const endMs = new Date(endDate).getTime();
+      filtered = filtered.filter(l => new Date(l.timestamp).getTime() <= endMs);
+    }
+
+    // Pagination math
+    const totalRecords = filtered.length;
+    const totalPages = Math.ceil(totalRecords / limit) || 1;
+    const startIndex = (page - 1) * limit;
+    const paginatedLogs = filtered.slice(startIndex, startIndex + limit);
+
+    return res.json({
+      success: true,
+      data: paginatedLogs,
+      pagination: {
+        page,
+        limit,
+        totalRecords,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      },
+      filters: {
+        severity: severity || 'all',
+        agent: agentFilter || 'all',
+        startDate: startDate || null,
+        endDate: endDate || null
+      }
+    });
+  } catch (err: any) {
+    console.error('Audit logs API error:', err);
+    return res.status(500).json({ error: 'Failed to query audit logs.', details: err?.message || String(err) });
+  }
+});
+
+// 6. Start Server with Vite Middleware in Dev or Static Serve in Prod
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');

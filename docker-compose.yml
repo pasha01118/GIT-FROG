@@ -1,44 +1,86 @@
 version: '3.8'
 
 services:
-  # Git-Frog Web App & Express API Server
+  # 1. Git-Frog Guardian Full-Stack Web App (React + Express + Gemini Server)
   app:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: git_frog_app
+    restart: always
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - VITE_DEPLOY_MODE=docker
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - DATABASE_URL=postgresql://gitfrog:gitfrogpass@postgres:5432/gitfrog_db
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - DATABASE_URL=postgresql://gitfrog:secretpass@postgres:5432/gitfrog_db
       - REDIS_URL=redis://redis:6379
     depends_on:
-      - postgres
-      - redis
-    restart: unless-stopped
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - gitfrog_net
 
-  # PostgreSQL Database Service
+  # 2. Mock Backend API Microservice (Enterprise Webhook & Audit Ingestion)
+  mock-backend-api:
+    image: node:20-alpine
+    container_name: git_frog_mock_api
+    restart: always
+    working_dir: /app
+    command: >
+      sh -c "node -e '
+      const http = require(\"http\");
+      http.createServer((req, res) => {
+        res.writeHead(200, { \"Content-Type\": \"application/json\" });
+        res.end(JSON.stringify({ status: \"ok\", service: \"Git-Frog Ingestion API\", timestamp: new Date().toISOString() }));
+      }).listen(4000, () => console.log(\"Mock Backend API listening on port 4000\"));
+      '"
+    ports:
+      - "4000:4000"
+    networks:
+      - gitfrog_net
+
+  # 3. PostgreSQL Database (Audit Records & User Settings Storage)
   postgres:
     image: postgres:16-alpine
+    container_name: git_frog_postgres
+    restart: always
     environment:
-      POSTGRES_USER: gitfrog
-      POSTGRES_PASSWORD: gitfrogpass
       POSTGRES_DB: gitfrog_db
+      POSTGRES_USER: gitfrog
+      POSTGRES_PASSWORD: secretpass
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gitfrog -d gitfrog_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gitfrog_net
 
-  # Redis Cache & Worker Queue Service
+  # 4. Redis Container (Real-Time Websocket State & Rate Limiting Cache)
   redis:
     image: redis:7-alpine
+    container_name: git_frog_redis
+    restart: always
     ports:
       - "6379:6379"
-    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+    networks:
+      - gitfrog_net
 
 volumes:
   pgdata:
+  redisdata:
+
+networks:
+  gitfrog_net:
+    driver: bridge

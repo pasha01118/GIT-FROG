@@ -25,7 +25,8 @@ export const INITIAL_REPOSITORIES: Repository[] = [
     ciStatus: 'passing',
     lastScanTime: '2 mins ago',
     language: 'TypeScript',
-    stars: 1420
+    stars: 1420,
+    category: 'web_frameworks'
   },
   {
     id: 'repo-2',
@@ -40,7 +41,8 @@ export const INITIAL_REPOSITORIES: Repository[] = [
     ciStatus: 'failing',
     lastScanTime: '5 mins ago',
     language: 'Go',
-    stars: 890
+    stars: 890,
+    category: 'security_devsecops'
   },
   {
     id: 'repo-3',
@@ -55,7 +57,56 @@ export const INITIAL_REPOSITORIES: Repository[] = [
     ciStatus: 'passing',
     lastScanTime: '12 mins ago',
     language: 'React / TS',
-    stars: 3100
+    stars: 3100,
+    category: 'web_frameworks'
+  },
+  {
+    id: 'repo-4',
+    name: 'llm-agent-orchestrator',
+    owner: 'omega-ai',
+    branch: 'main',
+    isPrivate: true,
+    healthScore: 91,
+    openPRs: 2,
+    activeAlerts: 1,
+    dependencyHealthScore: 89,
+    ciStatus: 'passing',
+    lastScanTime: '1 min ago',
+    language: 'Python',
+    stars: 4200,
+    category: 'ai_llm_systems'
+  },
+  {
+    id: 'repo-5',
+    name: 'k8s-terraform-gitops',
+    owner: 'cloud-infra',
+    branch: 'production',
+    isPrivate: true,
+    healthScore: 86,
+    openPRs: 4,
+    activeAlerts: 3,
+    dependencyHealthScore: 82,
+    ciStatus: 'passing',
+    lastScanTime: '18 mins ago',
+    language: 'HCL / Bash',
+    stars: 1950,
+    category: 'cloud_infrastructure'
+  },
+  {
+    id: 'repo-6',
+    name: 'mobile-guardian-app',
+    owner: 'git-frog',
+    branch: 'main',
+    isPrivate: false,
+    healthScore: 94,
+    openPRs: 0,
+    activeAlerts: 0,
+    dependencyHealthScore: 96,
+    ciStatus: 'passing',
+    lastScanTime: '30 mins ago',
+    language: 'React Native',
+    stars: 2840,
+    category: 'mobile_native'
   }
 ];
 

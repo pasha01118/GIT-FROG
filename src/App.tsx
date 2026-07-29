@@ -19,6 +19,8 @@ import { PolicyRuleModal } from './components/PolicyRuleModal';
 import { LoginModal } from './components/LoginModal';
 import { DeploymentChecklist } from './components/DeploymentChecklist';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { GoogleDriveModal } from './components/GoogleDriveModal';
+import { AiModelSettingsModal } from './components/AiModelSettingsModal';
 
 import {
   INITIAL_REPOSITORIES,
@@ -84,6 +86,8 @@ export default function App() {
   const [isPolicyRuleModalOpen, setIsPolicyRuleModalOpen] = useState<boolean>(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [isMfaModalOpen, setIsMfaModalOpen] = useState<boolean>(false);
+  const [isDriveModalOpen, setIsDriveModalOpen] = useState<boolean>(false);
+  const [isAiEngineModalOpen, setIsAiEngineModalOpen] = useState<boolean>(false);
   const [pendingMfaFinding, setPendingMfaFinding] = useState<Finding | null>(null);
 
   // 1. Run Live Multi-Agent Repository Scan
@@ -281,7 +285,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#08090D] text-slate-100 flex flex-col font-sans selection:bg-[#C8FF2E] selection:text-black">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#08090D] text-slate-100 flex flex-col font-sans selection:bg-[#C8FF2E] selection:text-black">
       
       {/* Top Header */}
       <Header
@@ -296,6 +300,8 @@ export default function App() {
         onOpenPolicyModal={() => setIsPolicyRuleModalOpen(true)}
         onOpenSettingsModal={() => setIsSettingsModalOpen(true)}
         onOpenLoginModal={() => setIsLoginModalOpen(true)}
+        onOpenDriveModal={() => setIsDriveModalOpen(true)}
+        onOpenAiEngineModal={() => setIsAiEngineModalOpen(true)}
         onReturnToSplash={() => setShowSplash(true)}
         user={user}
       />
@@ -533,6 +539,19 @@ export default function App() {
         }}
         actionTitle={pendingMfaFinding?.title || 'Merge Sensitive Security Patch'}
         riskLevel={pendingMfaFinding?.actionRisk || 'high'}
+      />
+
+      {/* Google Drive Vault Storage Modal */}
+      <GoogleDriveModal
+        isOpen={isDriveModalOpen}
+        onClose={() => setIsDriveModalOpen(false)}
+        reportTitle={`Git-Frog Audit ${selectedRepo.name}`}
+      />
+
+      {/* AI Model Engine Configuration Modal */}
+      <AiModelSettingsModal
+        isOpen={isAiEngineModalOpen}
+        onClose={() => setIsAiEngineModalOpen(false)}
       />
 
       {/* Footer */}

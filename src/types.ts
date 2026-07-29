@@ -40,6 +40,7 @@ export interface Repository {
   lastScanTime: string;
   language: string;
   stars: number;
+  category?: 'security_devsecops' | 'web_frameworks' | 'ai_llm_systems' | 'cloud_infrastructure' | 'mobile_native';
 }
 
 export interface ActivityEvent {

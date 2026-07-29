@@ -3,14 +3,26 @@ import {
   Activity, 
   TrendingUp, 
   CheckCircle2, 
-  AlertTriangle, 
-  ShieldCheck, 
   Layers, 
-  GitBranch, 
-  Calendar,
-  Sparkles,
-  Award
+  Award,
+  GitCommit,
+  Check,
+  XCircle
 } from 'lucide-react';
+import { 
+  ResponsiveContainer, 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  Tooltip, 
+  CartesianGrid, 
+  Legend, 
+  AreaChart, 
+  Area,
+  BarChart,
+  Bar
+} from 'recharts';
 import { Repository, HealthMetricHistory } from '../types';
 
 interface HealthAnalyticsProps {
@@ -18,14 +30,49 @@ interface HealthAnalyticsProps {
   history: HealthMetricHistory[];
 }
 
+// Generate 30-day realistic trend data
+const generate30DayTrends = (currentHealth: number, currentDep: number) => {
+  const data = [];
+  const now = new Date();
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const dayLabel = `${d.getMonth() + 1}/${d.getDate()}`;
+    
+    // Slight variance
+    const health = Math.min(100, Math.max(60, currentHealth + Math.sin(i * 0.5) * 6 - (i > 15 ? 4 : 0)));
+    const depHealth = Math.min(100, Math.max(50, currentDep + Math.cos(i * 0.4) * 5));
+    const securityIssues = Math.max(0, Math.floor(8 - (30 - i) * 0.2 + Math.sin(i) * 2));
+    const ciPassRate = Math.min(100, Math.max(70, 92 + Math.sin(i * 0.8) * 7));
+    const ciFails = Math.max(0, Math.floor((100 - ciPassRate) / 5));
+
+    data.push({
+      date: dayLabel,
+      healthScore: Math.round(health),
+      dependencyHealth: Math.round(depHealth),
+      securityIssues: securityIssues,
+      ciPassRate: Math.round(ciPassRate),
+      ciFails: ciFails
+    });
+  }
+  return data;
+};
+
 export const HealthAnalytics: React.FC<HealthAnalyticsProps> = ({
   repository,
   history
 }) => {
-  const [selectedTimeframe, setSelectedTimeframe] = useState<'7d' | '30d' | '90d'>('7d');
+  const [selectedTimeframe, setSelectedTimeframe] = useState<'7d' | '30d' | '90d'>('30d');
+  const chartData = generate30DayTrends(repository.healthScore, repository.dependencyHealthScore);
+
+  const displayData = selectedTimeframe === '7d' 
+    ? chartData.slice(-7) 
+    : selectedTimeframe === '30d' 
+      ? chartData 
+      : chartData;
 
   return (
-    <div className="space-y-5 font-mono text-xs">
+    <div className="space-y-6 font-mono text-xs">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
@@ -34,10 +81,10 @@ export const HealthAnalytics: React.FC<HealthAnalyticsProps> = ({
           </div>
           <div>
             <h3 className="text-base font-bold text-white tracking-wide flex items-center gap-2">
-              HEALTH AGENT • LONG-TERM REPO CONDITION
+              HEALTH ANALYTICS • 30-DAY METRIC TRENDS
             </h3>
             <p className="text-slate-400 font-sans text-xs">
-              Continuous repo health metrics, test coverage trend & multi-week security debt tracking
+              Interactive multi-line Recharts visualization for health index, dependencies, security & CI/CD trends
             </p>
           </div>
         </div>
@@ -101,42 +148,85 @@ export const HealthAnalytics: React.FC<HealthAnalyticsProps> = ({
         </div>
       </div>
 
-      {/* Visual Chart Bars Representation */}
+      {/* CHART 1: Multi-Line Graph (Health Score, Dependency Health, Security Issues) */}
       <div className="p-5 rounded-2xl bg-[#10131A] border border-slate-800 space-y-4">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <span className="font-bold text-white uppercase flex items-center gap-2">
             <Award className="w-4 h-4 text-[#C8FF2E]" />
-            Multi-Day Health Score & Security Debt Progression
+            Historical Health, Dependency Index & Security Trend
           </span>
-          <span className="text-slate-400 text-xs">Updated 2 minutes ago</span>
+          <span className="text-slate-400 text-xs">30-Day Moving Window</span>
         </div>
 
-        <div className="grid grid-cols-7 gap-2 pt-4 items-end h-48 border-b border-slate-800 pb-2">
-          {history.map((h, i) => (
-            <div key={i} className="flex flex-col items-center gap-2 h-full justify-end group">
-              <div className="text-[10px] font-bold text-[#C8FF2E] group-hover:scale-110 transition-all">
-                {h.score}%
-              </div>
-              <div 
-                style={{ height: `${h.score}%` }} 
-                className="w-full max-w-[36px] bg-gradient-to-t from-emerald-600 to-[#C8FF2E] rounded-t-lg group-hover:brightness-125 transition-all relative"
-              >
-                {/* Vulnerability dot overlay */}
-                <span className="absolute -top-2 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-rose-500" />
-              </div>
-              <span className="text-slate-400 text-[10px] uppercase font-bold">{h.date}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-[#C8FF2E]" /> Health Index</span>
-            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-rose-500" /> Security Debt Bar</span>
-          </div>
-          <span>Health Agent Prediction: <strong className="text-emerald-400">Target 95% achievable by release v2.5</strong></span>
+        <div className="h-64 w-full pt-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={displayData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" />
+              <XAxis dataKey="date" stroke="#64748B" tick={{ fontSize: 10, fill: '#94A3B8' }} />
+              <YAxis stroke="#64748B" domain={[0, 100]} tick={{ fontSize: 10, fill: '#94A3B8' }} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#08090D', borderColor: '#334155', borderRadius: '12px', fontSize: '11px', color: '#F8FAFC' }}
+              />
+              <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+              <Line 
+                type="monotone" 
+                dataKey="healthScore" 
+                name="Health Score" 
+                stroke="#C8FF2E" 
+                strokeWidth={3} 
+                dot={false}
+                activeDot={{ r: 6 }} 
+              />
+              <Line 
+                type="monotone" 
+                dataKey="dependencyHealth" 
+                name="Dependency Health" 
+                stroke="#20E3FF" 
+                strokeWidth={2} 
+                dot={false} 
+              />
+              <Line 
+                type="monotone" 
+                dataKey="securityIssues" 
+                name="Security Issues Count" 
+                stroke="#FF3B3B" 
+                strokeWidth={2} 
+                dot={false} 
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </div>
+
+      {/* CHART 2: CI/CD Pipeline Pass / Fail Trend Chart */}
+      <div className="p-5 rounded-2xl bg-[#10131A] border border-slate-800 space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <span className="font-bold text-white uppercase flex items-center gap-2">
+            <GitCommit className="w-4 h-4 text-[#2BFF88]" />
+            CI/CD Pipeline Pass / Fail Rate (30 Days)
+          </span>
+          <span className="text-slate-400 text-xs flex items-center gap-2">
+            <span className="flex items-center gap-1 text-emerald-400"><Check className="w-3 h-3" /> Passing</span>
+            <span className="flex items-center gap-1 text-rose-400"><XCircle className="w-3 h-3" /> Failing</span>
+          </span>
+        </div>
+
+        <div className="h-56 w-full pt-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={displayData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" />
+              <XAxis dataKey="date" stroke="#64748B" tick={{ fontSize: 10, fill: '#94A3B8' }} />
+              <YAxis stroke="#64748B" domain={[0, 100]} tick={{ fontSize: 10, fill: '#94A3B8' }} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#08090D', borderColor: '#334155', borderRadius: '12px', fontSize: '11px', color: '#F8FAFC' }}
+              />
+              <Bar dataKey="ciPassRate" name="CI Pass Rate (%)" fill="#2BFF88" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="ciFails" name="CI Failure Incidents" fill="#FF3B3B" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
     </div>
   );
 };

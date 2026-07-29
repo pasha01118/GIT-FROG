@@ -1,1 +1,53 @@
 @import "tailwindcss";
+
+@layer base {
+  html, body, #root {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Light Theme Variables & Styles */
+.theme-light {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+}
+
+.theme-light .bg-\[\#08090D\],
+.theme-light .bg-\[\#0C0E14\],
+.theme-light .bg-\[\#050608\] {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+}
+
+.theme-light .bg-\[\#10131A\] {
+  background-color: #F1F5F9 !important;
+  color: #0F172A !important;
+}
+
+.theme-light .border-slate-800,
+.theme-light .border-slate-800\/80,
+.theme-light .border-slate-800\/90 {
+  border-color: #E2E8F0 !important;
+}
+
+.theme-light .text-slate-400,
+.theme-light .text-slate-500 {
+  color: #64748B !important;
+}
+
+.theme-light .text-white {
+  color: #0F172A !important;
+}
+
+/* Custom scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
